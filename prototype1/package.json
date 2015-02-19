@@ -17,6 +17,7 @@
   "cordovaPlugins": [
     "https://github.com/EddyVerbruggen/Calendar-PhoneGap-Plugin.git",
     "http://github.com/VitaliiBlagodir/cordova-plugin-datepicker",
-    "org.apache.cordova.contacts"
+    "org.apache.cordova.contacts",
+    "https://github.com/katzer/cordova-plugin-local-notifications.git"
   ]
 }

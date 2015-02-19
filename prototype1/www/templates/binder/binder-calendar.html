@@ -30,7 +30,7 @@
 							
 
 							<ul class="unstyled">
-								<li ng-repeat="e in output()">
+								<li ng-repeat="e in output() track by $index">
 									<div class="alert alert-info">
 										<a class="close" ng-click="remove($index)"><i class="icon-remove"></i></a>
 										<b> <input ng-model="e.title"></b> 

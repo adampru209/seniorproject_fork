@@ -1,12 +1,17 @@
 /* Idea list control */
-app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', function($scope, $ionicPopup, $timeout, ideaService) {
+app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', '$localstorage', 'ideaService', function($scope, $ionicPopup, $timeout, $localstorage, ideaService) {
   var d = new Date();
   var count = ideaService.getNumberOf();
+  
+  /* Load from local storage */
+  var load = $localstorage.getObject( 'ideaList' );
+  if (Object.keys(load).length !== 0) {
+    ideaService.loadList( load );
+  }
 
    //Add idea 
    $scope.addIdea = function() {
-    $scope.list = {}
-	
+	$scope.list = {}
     var myPopup = $ionicPopup.show({
       template: '<input type="text" ng-model="list.idea">',
       title: 'Enter your ideas or inspirations',
@@ -18,7 +23,10 @@ app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', 
         text: '<b>Save</b>',
         type: 'button-positive',
 		onTap: function(e) {
+		
+		  /* Empty input */
 		  if (!$scope.list.idea) {
+			e.preventDefault();
 			var alertPopup = $ionicPopup.alert({
 			  title: 'Input is empty',
 			  template: 'Please input an item'
@@ -29,23 +37,24 @@ app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', 
 		  } else {
 		    var obj = { title: $scope.list.idea, date: d.toDateString(), id: count+1 };  
 			ideaService.addToList(obj);
+			$localstorage.setObject( 'ideaList', ideaService.output() );
+			$scope.list.idea = '';
 		  }
 		}
       }
     ]
     });
-	myPopup.then(function(res) {
-		myPopup.close();
-    });
+
 
   };
   
   //Edit idea
   $scope.editIdea = function(index) {
-    $scope.list = {}
-	
+	$scope.edit = {
+		idea: ideaService.getTitle(index)
+	};
     var myPopup = $ionicPopup.show({
-      template: '<input type="text" ng-model="list.idea">',
+      template: '<input type="text" ng-model="edit.idea">',
       title: 'Change of idea? That is fine',
       scope: $scope,
       buttons: [
@@ -54,9 +63,23 @@ app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', 
         text: '<b>Save</b>',
         type: 'button-positive',
 		onTap: function(e) {
-		  var newDate = new Date();
-		  var obj = { title: $scope.list.idea, date: newDate.toDateString(), id: index };
-		  ideaService.editItem( obj, index );
+	
+		  /* Empty input alert */
+		  if (!$scope.edit.idea) {
+			e.preventDefault();
+			var alertPopup = $ionicPopup.alert({
+			  title: 'Input is empty',
+			  template: 'Please input an item'
+		    });
+			alertPopup.then(function(res) {
+			  alertPopup.close();  
+			});
+		  } else {
+			var newDate = new Date();
+			var obj = { title: $scope.edit.idea, date: newDate.toDateString(), id: index };
+			ideaService.editItem( obj, index );
+			$localstorage.setObject( 'ideaList', ideaService.output() );
+		  }
 		}
       }
     ]
@@ -76,7 +99,7 @@ app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', 
    confirmPopup.then(function(res) {
      if(res) {
        ideaService.removeItem( index );
-	   console.log( index );
+	   $localstorage.setObject( 'ideaList', ideaService.output() );
      } else {
        
      }
@@ -84,7 +107,6 @@ app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', 
  };
   
   //Output the idea
-  $scope.list = [];
   
   $scope.output = function () {
 	$scope.list = ideaService.output();
@@ -93,8 +115,13 @@ app.controller('IdeaCtrl', ['$scope', '$ionicPopup', '$timeout', 'ideaService', 
 
 }])
 
+
 app.factory('ideaService', function() {
   var list = [];
+  
+  function loadList(load) {
+	list = load;
+  }
   
   function addToList(item) {
 	list.push(item);
@@ -113,6 +140,10 @@ app.factory('ideaService', function() {
 	return list.length;
   }
   
+  function getItem( index ) {
+	return list[index];
+  }
+  
   function getTitle( index ) {
 	return list[index].title;
   }
@@ -122,10 +153,12 @@ app.factory('ideaService', function() {
   }
   
   return {
+    loadList: loadList,
 	addToList: addToList,
 	editItem: editItem,
 	removeItem: removeItem,
 	getNumberOf: getNumberOf,
+	getItem: getItem,
 	getTitle: getTitle,
 	output: output
   };

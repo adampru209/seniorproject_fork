@@ -1,4 +1,4 @@
-app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCalendar', 'uiCalendarConfig', 'calendarService', 'toDoService', function CalendarCtrl($scope, $compile, $ionicPopup, $cordovaCalendar, uiCalendarConfig, calendarService, toDoService) {
+app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCalendar', '$localstorage', 'uiCalendarConfig', 'calendarService', 'toDoService', function CalendarCtrl($scope, $compile, $ionicPopup, $cordovaCalendar, $localstorage, uiCalendarConfig, calendarService, toDoService) {
 	  var date = new Date();
 	  //Event object
 	  $scope.obj = {
@@ -7,6 +7,12 @@ app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCa
 		end: date
 
 	  };
+	  
+	  /* Load from local storage */
+	  var load = $localstorage.getObject( 'calendar' );
+	  if (Object.keys(load).length !== 0) {
+		calendarService.loadList( load );
+	  }
 	  
 	  //Add event popup
 	  $scope.addEvent = function(){
@@ -22,10 +28,15 @@ app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCa
 			{
 			  text: 'Save',
 			  onTap: function(e){
-			  
+			    var toDo = {
+				  title: $scope.obj.title,
+				  date: $scope.obj.end.toDateString()
+				};
 				//Add to calendar and to-do
 				calendarService.addToList($scope.obj);
-				toDoService.addToList($scope.obj);
+				toDoService.addToList(toDo);
+				$localstorage.setObject( 'calendar', calendarService.output() );
+				$localstorage.setObject( 'toDoList', toDoService.output() );
 				
 				//Save to native calendar app
 				$cordovaCalendar.createEvent({
@@ -83,6 +94,8 @@ app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCa
     $scope.remove = function(index) {
       calendarService.removeItem(index);
 	  toDoService.removeItem(index);
+	  $localstorage.setObject( 'calendar', calendarService.output() );
+	  $localstorage.setObject( 'toDoList', toDoService.output() );
     };
 	
     /* Change View */
@@ -109,8 +122,12 @@ app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCa
     /* config object */
     $scope.uiConfig = {
       calendar:{
-        height: 500,
+		aspectRatio: 1.5,
         editable: true,
+		timezone: 'local',
+		ignoreTimezone: false,
+		scrollTime: '00:00:00',       
+		allDaySlot: false,
         header:{
           left: 'title',
           center: '',
@@ -128,16 +145,20 @@ app.controller('CalendarCtrl', ['$scope', '$compile', '$ionicPopup', '$cordovaCa
 	
 	/* Output events */
 	$scope.output = function () {
-		$scope.events = calendarService.output().slice(0);
-		return $scope.events;
+		return calendarService.output();
 	}
 	
     /* event sources array*/
     $scope.eventSources = [];
+	    
 }]);
 
-app.factory('calendarService', function() {
+app.factory('calendarService', ['$localstorage', function($localstorage) {
   var list = [];
+  
+  function loadList(load) {
+    list = load;
+  }
   
   function addToList(item) {
 	list.push(item);
@@ -165,6 +186,7 @@ app.factory('calendarService', function() {
   }
   
   return {
+    loadList: loadList,
 	addToList: addToList,
 	editItem: editItem,
 	removeItem: removeItem,
@@ -172,4 +194,4 @@ app.factory('calendarService', function() {
 	getTitle: getTitle,
 	output: output
   };
-});
+}]);

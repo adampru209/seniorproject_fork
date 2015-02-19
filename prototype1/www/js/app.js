@@ -4,15 +4,26 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 var app = angular.module('prototype', ['ionic', 'ngCordova', 'ui.calendar', 'ui.bootstrap'])
-//<<<<<<< HEAD
-//=======
 
 app.run(function($ionicPlatform) {
 
 	$ionicPlatform.ready(function() {
 	});
+	
+	//window.localStorage.clear();
+	
+	var appLaunchCount = window.localStorage.getItem('launchCount');
+	//Check if item exists
+	if(appLaunchCount){
+	   //If it exists then it is not the first time app launched
+	   console.log("NOT first time");
+	}else{
+	  //First time launch. Set the local storage item
+	  window.localStorage.setItem('launchCount',1);
+	  console.log("FIRST TIME USER");
+
+	}
 });
-//>>>>>>> origin/test
 
 app.config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
@@ -27,6 +38,12 @@ app.config(function($stateProvider, $urlRouterProvider) {
     url: '/MainMenu',
     templateUrl: 'templates/MainMenu.html',
     controller: 'MainCtrl'
+  })
+
+  .state('profile', {
+    url: '/profile',
+    templateUrl: 'templates/profile.html',
+    controller:'profile'
   })
   
 
@@ -208,6 +225,8 @@ app.controller('MainCtrl', function($scope, $state) {
 //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
+
+// TODO, remove all these to____. they can be replaced by ui-sref="__"
   $scope.toMSI_communication = function(){
     $state.go('msi_communication');
   }
@@ -245,3 +264,30 @@ app.controller('MainCtrl', function($scope, $state) {
   }
 
 })
+
+//Used for storing objects and converting to and from JSON
+app.factory('$localstorage', ['$window', function($window) {
+  
+  function set(key, value) {
+      $window.localStorage[key] = value;
+  }
+  
+  function get(key, defaultValue) {
+      return $window.localStorage[key] || defaultValue;
+  }
+  
+  function setObject(key, value) {
+      $window.localStorage[key] = JSON.stringify(value);
+  }
+  
+  function getObject(key) {
+      return JSON.parse($window.localStorage[key] || '{}');
+  }
+  
+  return {
+    set: set,
+    get: get,
+    setObject: setObject,
+    getObject: getObject
+  }
+}]);

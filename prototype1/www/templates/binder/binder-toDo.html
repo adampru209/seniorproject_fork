@@ -1,10 +1,10 @@
 <ion-view title="To-Do-List" ng-controller="ToDoCtrl">
   <ion-content has-header="true">
 	<ion-list>
-       <ion-checkbox ng-repeat="list in output()" ng-model="list.done">
+       <ion-checkbox ng-repeat="list in output() track by $index" ng-model="list.done">
         <span ng-class="{done: list.done}">{{list.title}}</span>
 		<div class="top-right">
-		<span ng-class="{done: list.done}">{{ " Due by " + list.end.toDateString()}}</span>
+		<span ng-class="{done: list.done}">{{ " Due by " + list.date}}</span>
 		</div>
       </ion-checkbox>
     </ion-list>
