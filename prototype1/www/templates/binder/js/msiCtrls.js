@@ -22,10 +22,6 @@ app.factory('scraper', function() {
     //values = [];
     return out;
   }
-  
-  function clear() {
-	values.length = 0;
-  }
 
   function GetMaxVal(){
     return Math.max.apply(Math, values);

@@ -18,7 +18,6 @@
     right: 20px;
 }
 
-.scroller {
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+.calendar {
+    overflow:scroll;
 }
